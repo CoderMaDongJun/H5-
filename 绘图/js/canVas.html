@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+        #heatmap {
+            background-image: url("../image/gravel.png");
+        }
+    </style>
+</head>
+<body>
+<div id="support"></div>
+<!--1-->
+<canvas id="diagonal" style="border: 1px solid;" width="200" height="200"></canvas>
+
+<!--2-->
+<canvas id="trails" style="border: 1px solid;" width="440" height="640"></canvas>
+
+
+<!--<img src="../image/success.png">-->
+<script>
+
+    try {
+        document.createElement("canvas").getContext("2d");
+        document.getElementById("support").innerHTML =
+            "HTML5 Canvas is supported in your browser.";
+
+    } catch (e) {
+        document.getElementById("support").innerHTML = "HTML5 Canvas is not supported";
+    }
+//
+//    var color1 = "#339900";// 绿色
+//    var color2 = "#663300";// 棕色
+    function drawDiagonal1() {
+        // 取得 canvas 元素及其绘图上下文
+        var canvas = document.getElementById('diagonal');
+        var context = canvas.getContext('2d');
+
+        context.moveTo(70, 140);
+
+        //用绝对坐标来创建一条路径 context.beginPath();
+        context.lineTo(140, 70);
+        // 将这条线绘制到 canvas 上
+         context.stroke();
+    }
+    drawDiagonal1()
+
+    function drawDiagonal() {
+        var canvas = document.getElementById('diagonal');
+        var context = canvas.getContext('2d');
+
+        // 保存当前绘图状态
+        context.save();
+
+        // 向右下方移动绘图上下文
+        context.translate(70, 140);
+
+        // 以原点为起点，绘制与前面相同的线段
+        context.beginPath();//对于 canvas 来说， beginPath 函数最大的用处是 canvas 需要据此来计算图形的内部和外部范围，以便完成后续 的描边和填充。
+        context.moveTo(0, 0);
+        context.lineTo(70, -70);
+        context.stroke();
+
+        // 恢复原有的绘图状态
+        context.restore();
+    }
+
+    window.addEventListener("load", drawDiagonal, true);
+
+    // 加载图片bark.jpg
+//    var bark = new Image();
+//    bark.src = "../image/success.png";
+//    // 图片加载完成后，将其显示在canvas上
+//    bark.onload = function () {
+//        drawTrails();
+//    }
+
+    // 加载砾石背景图
+    var gravel = new Image();
+    gravel.src = "../image/gravel1.png";
+    gravel.onload = function () {
+        drawTrails();
+    }
+
+    // 绘制树冠
+    function createCanopyPath(context) {
+        context.beginPath();
+
+        context.moveTo(-25, -50);
+        context.lineTo(-10, -80);
+        context.lineTo(-20, -80);
+        context.lineTo(-5, -110);
+        context.lineTo(-15, -110);
+
+        // 树的顶点
+        context.lineTo(0, -140);
+        context.lineTo(15, -110);
+        context.lineTo(5, -110);
+        context.lineTo(20, -80);
+        context.lineTo(10, -80);
+        context.lineTo(25, -50);
+
+        // 连接起点，闭合路径
+        context.closePath();
+    }
+
+    // 单色树干
+    function singleColorTrail(context) {
+        // 将填充色设为棕色
+        context.fillStyle = color2;
+        // 填充用作树干的矩形区域
+        context.fillRect(-5, -50, 10, 50);
+    }
+
+    // 图片树干
+    function drawImage(context) {
+        // 用背景图案填充作为树干的矩形
+        context.drawImage(bark, -5, -50, 10, 50);
+    }
+
+    // 渐变色树干
+    function morecolorTrail(context) {
+        // 创建用作树干纹理的三阶水平渐变
+        var trunkGradient = context.createLinearGradient(-5, -50, 5, -50);
+        // 树干的左侧边缘是一般程度的棕色
+        trunkGradient.addColorStop(0, '#663300');
+        // 树干中间偏左的位置颜色要淡一些
+        trunkGradient.addColorStop(0.4, '#996600');
+        // 树干右侧边缘的颜色要深一些
+        trunkGradient.addColorStop(1, '#552200');
+        // 使用渐变色填充树干
+        context.fillStyle = trunkGradient;
+        context.fillRect(-5, -50, 10, 50);
+        // 接下来，创建垂直渐变，以用作树冠在树干上投影
+        var canopyShadow = context.createLinearGradient(0, -50, 0, 0);
+        // 投影渐变的起点是透明度设为50%的黑色
+        canopyShadow.addColorStop(0, 'rgba(0, 0, 0, 0.5)');
+        // 方向垂直向下，渐变色在很短的距离内迅速渐变至完全透明，这段长度之外的树干上没有投影
+        canopyShadow.addColorStop(0.2, 'rgba(0, 0, 0, 0.0)');
+        // 在树干上填充投影渐变
+        context.fillStyle = canopyShadow;
+        context.fillRect(-5, -50, 10, 50);
+    }
+
+    // 使用棕色的粗线条来绘制路径
+    function sigleArcLine(context) {
+        context.strokeStyle = '#663300';
+        context.lineWidth = 20;
+        context.stroke();
+    }
+
+    // 用背景图替代棕色粗线条
+    function gravelImage(context) {
+        context.strokeStyle = context.createPattern(gravel, 'repeat');
+        context.lineWidth = 20;
+        context.stroke();
+    }
+
+    // 创建树对象绘制函数，以便重用
+    function drawTree(context) {
+        // 树干阴影
+        context.save();
+        context.transform(1, 0, -0.5, 1, 0, 0);
+        context.scale(1, 0.6);
+        context.fillStyle = 'rgba(0, 0, 0, 0.2)';
+        context.fillRect(-5, -50, 10, 50);
+        // 使用已有的阴影效果重新绘制树
+        createCanopyPath(context);
+        context.fill();
+        context.restore();
+
+        // 左右渐变色
+        var trunkGradient = context.createLinearGradient(-5, -50, 5, -50);
+        trunkGradient.addColorStop(0, '#663300');
+        trunkGradient.addColorStop(0.4, '#996600');
+        trunkGradient.addColorStop(1, '#552200');
+        context.fillStyle = trunkGradient;
+        context.fillRect(-5, -50, 10, 50);
+
+        // 上下渐变色
+        var canopyShadow = context.createLinearGradient(0, -50, 0, 0);
+        canopyShadow.addColorStop(0, 'rgba(0, 0, 0, 0.5)');
+        canopyShadow.addColorStop(0.2, 'rgba(0, 0, 0, 0.0)');
+        context.fillStyle = canopyShadow;
+        context.fillRect(-5, -50, 10, 50);
+
+        // 树冠
+        createCanopyPath(context);
+        context.lineWidth = 4;
+        context.lineJoin = 'round';
+        context.strokeStyle = '#663300';
+        context.stroke();
+        context.fillStyle = '#339900';
+        context.fill();
+    }
+
+    function drawTrails1() {
+        var canvas = document.getElementById('trails');
+        var context = canvas.getContext('2d');
+        context.save();
+
+        context.translate(130, 250);
+        // 创建表现树冠的路径
+         createCanopyPath(context);
+
+        // 将填充色设置为绿色并填充树冠
+        context.fillStyle = color1;
+        context.fill();
+
+        // 树干
+        morecolorTrail(context);
+
+        // 绘制当前路径
+        // 加宽线条
+        context.lineWidth = 4;
+        // 平滑路径的接合点
+        context.lineJoin = 'round';
+        // 将颜色改成棕色
+        context.strokeStyle = color2;
+
+        context.stroke();
+        context.restore();
+
+        // 保存 canvas 的状态并绘制路径
+        context.save();
+        context.translate(-10, 350);
+        context.beginPath();
+
+        // 第一条曲线向右上方弯曲
+        context.moveTo(0, 0);
+        context.quadraticCurveTo(170, -50, 260, -190);
+
+        // 第二条曲线向右下方弯曲
+        context.quadraticCurveTo(310, -250, 410,-250);
+
+        // 曲线小路
+        gravelImage(context);
+
+        // 恢复之前的 canvas 状态
+        context.restore();
+
+    }
+
+    function drawTrails() {
+        var canvas = document.getElementById('trails');
+        var context = canvas.getContext('2d');
+        context.save();
+        context.translate(130, 250);
+        drawTree(context);
+        context.restore();
+
+        // 在(260,500)的位置绘制第二棵树
+        context.save();
+        context.translate(260,500);
+        context.scale(2.0,2.0);// 将第二棵树的宽高分别放大至原来的2倍
+        drawTree(context);
+        context.restore();
+
+        // 小路
+        context.save();
+        context.translate(-10,350);
+        context.beginPath();
+        context.moveTo(0,0);
+        context.quadraticCurveTo(170,-50,260,-190);
+        context.quadraticCurveTo(310, -250, 410,-250);
+        gravelImage(context);
+        context.restore();
+
+        // 文本
+        context.save();
+        context.font = "60px impact";
+        context.fillStyle = '#996600';
+        context.textAlign = 'center';
+        // 文本阴影
+        context.shadowColor = 'rgba(0, 0, 0, 0.2)';
+        context.shadowOffsetX = 15;
+        context.shadowOffsetY = -10;
+        context.shadowBlur = 2;
+        context.fillText('Happy Trails!', 200, 60, 400);
+        context.restore();
+
+
+    }
+
+
+
+    // 知识点:
+    // 1.Canvas 文本
+    // context 对象的文本绘制功能由两个函数组成:
+    // fillText(text,x, y,maxwidth)
+    // strokeText(text,x,y,maxwidth)
+    // 必选参数包括文本参数以及用于指定文本位置的坐标参数。
+    // maxwidth 是可选参数，用于限制字体大小，它会将文本字体强制收缩到指定尺寸
+
+    // 2.context.beginPath();
+    // 对于 canvas 来说， beginPath 函数最大的用处是 canvas 需要据此来计算图形的内部和外部范围，以便完成后续 的描边和填充。
+
+</script>
+</body>
+</html>
